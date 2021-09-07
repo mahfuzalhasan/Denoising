@@ -3,7 +3,7 @@ import torch.nn as nn
 import numpy as np
 
 import sys
-sys.path.insert(1,"/home/UFAD/mdmahfuzalhasan/Documents/Projects/HARTS/MSGAN/Exp_1/Config")
+sys.path.insert(1,"Config")
 
 import configuration as cfg 
 import parameters as params
