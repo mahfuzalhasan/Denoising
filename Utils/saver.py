@@ -5,7 +5,7 @@ import numpy as np
 from PIL import Image
 
 import sys
-sys.path.insert(1,"/home/UFAD/mdmahfuzalhasan/Documents/Projects/HARTS/MSGAN/Config")
+sys.path.insert(1,"Config")
 import configuration as cfg
 
 # tensor to PIL Image

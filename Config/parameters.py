@@ -1,13 +1,12 @@
 #training
 num_epoch = 1000
 batch_size = 8
-#resume = None #"/home/UFAD/mdmahfuzalhasan/Documents/Results/output_harts/saved_models/02-10-21_1341_msgan/00074.pth"
-resume = None #"/home/UFAD/mdmahfuzalhasan/Documents/Results/output_harts/saved_models/02-11-21_0752_msgan/00180.pth"
+resume = None
 gpu = 0
 smoothing_value = 0.85
 
 #test
-result_dir = "/home/UFAD/mdmahfuzalhasan/Documents/Results/output_harts/test_output"
+result_dir = "../../data/Denoising/test_output"
 name = "02-11-21_0752_msgan"
 num = 100
 

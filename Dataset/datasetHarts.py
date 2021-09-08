@@ -29,43 +29,28 @@ import sys
 
 
 class Denoising_dataset(Dataset):
-    def __init__(self, img_files):
+    def __init__(self, df, transform=None):
         super(Denoising_dataset,self).__init__()
-        self.img_files = img_files
-        random.shuffle(self.img_files)
-
-    #center crop 90 X 90
-    def imgResize(self,img):
-        h = img.shape[0]
-        w = img.shape[1]
-        color = (0,0,0)
-        new_h = 90
-        new_w = 90
-        result = np.full((new_h,new_w,3), color, dtype=np.uint8)
-        # compute center offset
-        xx = (new_w - w) // 2
-        yy = (new_h - h) // 2
-        result[yy:yy+h, xx:xx+w] = img
-        return result
-
+        self.df = df
+        self.transform = transform
+        df.sample(frac=1)
+        self.img_input = self.df['input'].tolist()
+        self.img_target = self.df['target'].tolist()
 
     def convert_to_tensor(self, image):
         #image = image[:,:,0]
         image = np.expand_dims(image,axis=2)
         image = image/255.0
-        image = np.transpose(image, (2, 0, 1))  #CxHXW 
+        image = np.transpose(image, (2, 0, 1)) #CxHXW 
         image_tensor = torch.from_numpy(image)
         image_tensor = image_tensor.type(torch.FloatTensor)
         return image_tensor
 
 
     def __getitem__(self,index):
-        image_container =  self.img_files[index%len(self.img_files)]
-        input_img_path = image_container['input']
-        target_img_path = image_container['target']
 
-        img_input = Image.open(input_img_path)
-        img_target = Image.open(target_img_path)
+        img_input = Image.open(self.img_input[index])
+        img_target = Image.open(self.img_target[index])
 
         img_input = np.array(img_input)
         img_target = np.array(img_target)
@@ -75,6 +60,10 @@ class Denoising_dataset(Dataset):
         if img_target.shape[1] > 1024:
             img_target = img_target[:,:1024]
 
+        if self.transform:
+            augmented = self.transform(image=img_input, mask=img_target)
+            img_input = augmented['image']
+            img_target = augmented['mask']
         img_input_tensor = self.convert_to_tensor(img_input)
         img_target_tensor = self.convert_to_tensor(img_target)
 
@@ -84,7 +73,7 @@ class Denoising_dataset(Dataset):
 
 
     def __len__(self):
-        return len(self.img_files)
+        return len(self.img_input)
 '''
 if __name__ == "__main__":
     run_started = datetime.today().strftime('%m-%d-%y_%H%M')

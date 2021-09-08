@@ -4,6 +4,7 @@
 """ Training with new Dataset """
 
 data_path = "../../data/Denoising/Denoising"
+label_path = "../../data/Denoising/data.csv"
 output_img_path = "../../data/Denoising/Generation/Aug_Check"
 data_split = "../../data/Denoising/Denoising_Split"
 output_path = "../../data/Denoising/output"

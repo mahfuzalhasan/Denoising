@@ -1,4 +1,5 @@
 import argparse
+
 import os
 import numpy as np
 import math
@@ -6,6 +7,12 @@ from datetime import datetime
 import time
 import sys
 import copy
+
+sys.path.insert(1,"Config")
+import configuration as cfg
+import parameters as params
+
+import pandas as pd
 
 from tensorboardX import SummaryWriter
 
@@ -21,8 +28,18 @@ from torch.utils.data import DataLoader
 import torch  
 from torch.optim import Adam, lr_scheduler
 
+import albumentations as A
+from albumentations.augmentations.transforms import Equalize, Posterize, Downscale
+from albumentations import (
+    PadIfNeeded, HorizontalFlip, VerticalFlip, CenterCrop,    
+    RandomCrop, Resize, Crop, Compose, HueSaturationValue,
+    Transpose, RandomRotate90, ElasticTransform, GridDistortion, 
+    OpticalDistortion, RandomSizedCrop, Resize, CenterCrop,
+    VerticalFlip, HorizontalFlip, OneOf, CLAHE, Normalize,
+    RandomBrightnessContrast, Cutout, RandomGamma, ShiftScaleRotate ,
+    GaussNoise, Blur, MotionBlur, GaussianBlur, 
+)
 
-from Dataset.dataParserHarts import Denoising_parser
 from Dataset.datasetHarts import Denoising_dataset
 from Model.model import CDCGAN
 from Utils.saver import Saver, AvgMeter
@@ -124,6 +141,16 @@ def train_reconstruction(run_id, use_cuda):
     # Initialize generator and discriminator
     writer = SummaryWriter(os.path.join(cfg.logs_dir, str(run_id)))
     model = UNet(in_channels=1, out_channels=1)
+    augmentations = A.Compose([
+        A.augmentations.geometric.rotate.Rotate(limit=15, p=0.4),
+    OneOf([
+        GaussNoise(var_limit=0.1),
+        Blur(),
+        GaussianBlur(blur_limit=3),
+        # RandomGamma(p=0.7),
+        ], p=0.3),
+    A.HorizontalFlip(p=0.3)])
+
     if use_cuda:
         model = nn.DataParallel(model, device_ids = [0, 2, 3])
         model.to(f'cuda:{model.device_ids[0]}')
@@ -134,18 +161,16 @@ def train_reconstruction(run_id, use_cuda):
     ep0 += 1
 
     # Dataset preparation
-    data_parser = Denoising_parser(cfg.data_path, run_id) 
-    img_files = copy.deepcopy(data_parser.train_img_file)
-    print('file size: ',len(img_files))
+    df = pd.read_csv(cfg.label_path)
+    print('file size: ',len(df))
     
     saver = Saver(params, run_id)
 
     criterion = torch.nn.MSELoss()
     optimizer = Adam(model.parameters(), lr=params.learning_rate, betas=(0.9,0.99), eps=1e-8)
     print('done')
-    
     for epoch in range(ep0, params.num_epoch):
-        train_dataset = Denoising_dataset(img_files)
+        train_dataset = Denoising_dataset(df, augmentations)
         dataloader = DataLoader(train_dataset, batch_size=params.batch_size, shuffle=True)
         print("len dataset: ",len(train_dataset))
         print("len dataloader: ",len(dataloader))
@@ -154,7 +179,7 @@ def train_reconstruction(run_id, use_cuda):
 if __name__ == "__main__":
 
     run_started = datetime.today().strftime('%m-%d-%y_%H%M')
-    run_started =str(run_started)+'_msgan'
+    run_started =str(run_started)+'_denoising'
     use_cuda = torch.cuda.is_available()
     print('use cuda: ',use_cuda)
 

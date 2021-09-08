@@ -9,7 +9,7 @@ import pickle
 import statistics
 
 import sys
-sys.path.insert(1,"Config")
+sys.path.insert(1,"/home/UFAD/mdmahfuzalhasan/Documents/Projects/HARTS/MSGAN/Exp_1/Config")
 
 import xml.etree.ElementTree as ET
 import json
