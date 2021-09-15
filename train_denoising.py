@@ -141,6 +141,7 @@ def train_reconstruction(run_id, use_cuda):
     # Initialize generator and discriminator
     writer = SummaryWriter(os.path.join(cfg.logs_dir, str(run_id)))
     model = UNet(in_channels=1, out_channels=1)
+    
     augmentations = A.Compose([
         A.augmentations.geometric.rotate.Rotate(limit=15, p=0.4),
     OneOf([
